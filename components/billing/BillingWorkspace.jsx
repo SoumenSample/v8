@@ -1041,28 +1041,53 @@ export default function BillingWorkspace({ mode = "client" }) {
               ) : (
                 <div className="space-y-3">
                   {bills.map((bill) => (
-                    <button
+                    <div
                       key={bill._id}
-                      type="button"
-                      onClick={() => setSelectedId(bill._id)}
-                      className={`w-full rounded-lg border px-4 py-3 text-left transition-colors ${
+                      className={`w-full rounded-lg border px-4 py-3 transition-colors ${
                         selectedId === bill._id
                           ? "border-border bg-muted/50 dark:border-white/20 dark:bg-white/5"
                           : "border-border/70 bg-background hover:border-border hover:bg-muted/40 dark:border-white/10 dark:hover:bg-white/5"
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{bill.type}</p>
-                          <p className="text-lg font-bold text-foreground">{bill.referenceNumber}</p>
+                      <div className="flex items-start justify-between gap-3">
+                        <button type="button" onClick={() => setSelectedId(bill._id)} className="flex-1 text-left">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{bill.type}</p>
+                              <p className="text-lg font-bold text-foreground">{bill.referenceNumber}</p>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{formatDateInput(bill.issueDate)}</p>
+                          </div>
+                          <p className="mt-2 text-sm text-muted-foreground">{bill.documentTitle} - {bill.documentSubtitle}</p>
+                        </button>
+
+                        <div className="shrink-0">
+                          {isUploadedRecord(bill) ? (
+                            <Button type="button" variant="outline" onClick={() => downloadUploadedFile(bill)}>
+                              Download File
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedId(bill._id);
+                                downloadPreviewAsPdf();
+                              }}
+                              disabled={exporting && selectedId === bill._id}
+                            >
+                              {exporting && selectedId === bill._id ? "Downloading..." : "Download PDF"}
+                            </Button>
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{formatDateInput(bill.issueDate)}</p>
                       </div>
-                      <p className="mt-2 text-sm text-muted-foreground">{bill.documentTitle} - {bill.documentSubtitle}</p>
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
+
+              {notice ? <p className="mt-3 text-sm text-emerald-400">{notice}</p> : null}
+              {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
             </CardContent>
           </Card>
         )}
@@ -1101,9 +1126,9 @@ export default function BillingWorkspace({ mode = "client" }) {
                                 {/* <Button type="button" variant="outline" onClick={() => setSelectedId(bill._id)}>
                                   View
                                 </Button> */}
-                                <Button type="button" variant="outline" onClick={() => viewUploadedFile(bill)}>
+                                {/* <Button type="button" variant="outline" onClick={() => viewUploadedFile(bill)}>
                                   Open File
-                                </Button>
+                                </Button> */}
                                 <Button type="button" variant="outline" onClick={() => downloadUploadedFile(bill)}>
                                   Download
                                 </Button>
@@ -1156,6 +1181,14 @@ export default function BillingWorkspace({ mode = "client" }) {
       </div>
 
       
+
+      {!canManage && selectedBill && !isUploadedRecord(selectedBill) ? (
+        <div className="pointer-events-none fixed top-0 z-[-1]" style={{ left: -10000 }}>
+          <div ref={printableRef} className="bg-white p-4" style={{ width: 1024 }}>
+            <BillingDocument bill={selectedBill} />
+          </div>
+        </div>
+      ) : null}
 
     </div>
   );

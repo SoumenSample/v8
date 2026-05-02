@@ -1,33 +1,58 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
-export default function ContractForm({ open, setOpen, onSuccess }) {
+export default function ContractForm({ open, setOpen, onSuccess, initialData = null }) {
   const [form, setForm] = useState({
     description: "",
     date: "",
     signature: "",
     reference: "",
-     clientEmail: "",
+    clientEmail: "",
   })
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        description: initialData.description || "",
+        date: initialData.signedDate ? new Date(initialData.signedDate).toISOString().split('T')[0] : "",
+        signature: initialData.signature || "",
+        reference: initialData.reference || "",
+        clientEmail: initialData.clientEmail || "",
+      })
+    } else {
+      setForm({
+        description: "",
+        date: "",
+        signature: "",
+        reference: "",
+        clientEmail: "",
+      })
+    }
+  }, [initialData, open])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    await fetch("/api/contracts", {
-      method: "POST",
+    const method = initialData ? "PUT" : "POST"
+    const url = initialData ? `/api/contracts/${initialData._id}` : "/api/contracts"
+
+    await fetch(url, {
+      method,
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(form),
     })
-    console.log(form);
+    console.log(form)
 
     setOpen(false)
     onSuccess()
   }
+
+  const isEditing = !!initialData
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -43,8 +68,12 @@ export default function ContractForm({ open, setOpen, onSuccess }) {
             </svg>
           </div>
           <div>
-            <DialogTitle className="text-sm font-bold text-gray-900 dark:text-white">New Contract</DialogTitle>
-            <DialogDescription className="text-xs text-gray-400 dark:text-gray-500">Fill in contract details and save</DialogDescription>
+            <DialogTitle className="text-sm font-bold text-gray-900 dark:text-white">
+              {isEditing ? "Edit Contract" : "New Contract"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-400 dark:text-gray-500">
+              {isEditing ? "Update contract details and save" : "Fill in contract details and save"}
+            </DialogDescription>
           </div>
         </div>
 
@@ -98,7 +127,7 @@ export default function ContractForm({ open, setOpen, onSuccess }) {
 />
 
           <Button type="submit" className="w-full">
-            Save Contract
+            {isEditing ? "Update Contract" : "Save Contract"}
           </Button>
 
         </form>

@@ -156,6 +156,7 @@
 
 import { useSession } from "next-auth/react"
 import { useCallback, useEffect, useState } from "react"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
 export default function ClientContracts() {
   const { data: session } = useSession()
@@ -167,6 +168,7 @@ export default function ClientContracts() {
   const [signature, setSignature] = useState("")
   const [date, setDate] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [viewingContract, setViewingContract] = useState(null)
 
   const loadContracts = useCallback(async () => {
     if (!email) return
@@ -199,6 +201,10 @@ export default function ClientContracts() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleViewContract = (contract: any) => {
+    setViewingContract(contract)
   }
 
   const signed = contracts.filter((c: any) => c.signature).length
@@ -273,8 +279,17 @@ export default function ClientContracts() {
                     </td>
 
                     {/* Description */}
-                    <td className="px-5 py-4 text-gray-700 dark:text-gray-300 max-w-xs truncate">
-                      {c.description || "—"}
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => handleViewContract(c)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors whitespace-nowrap"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        View
+                      </button>
                     </td>
 
                     {/* Status */}
@@ -438,6 +453,75 @@ export default function ClientContracts() {
           </div>
         </div>
       )}
+
+      {/* ── Contract Detail Modal ── */}
+      <Dialog open={!!viewingContract} onOpenChange={(isOpen) => !isOpen && setViewingContract(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogTitle className="sr-only">Contract Details</DialogTitle>
+          {viewingContract && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="border-b border-gray-200 dark:border-white/10 pb-4">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Contract Details</h2>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
+                    viewingContract.signature 
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+                    {viewingContract.signature ? "Signed" : "Pending"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reference</label>
+                  <p className="text-sm text-gray-900 dark:text-white mt-1 font-mono">{viewingContract.reference || "—"}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Signed On</label>
+                  <p className="text-sm text-gray-900 dark:text-white mt-1">
+                    {viewingContract.signedDate
+                      ? new Date(viewingContract.signedDate).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+                      : "Not signed yet"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Signature</label>
+                  <p className="text-sm text-gray-900 dark:text-white mt-1">{viewingContract.signature || "—"}</p>
+                </div>
+              </div>
+
+              {/* Description - Full */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</label>
+                <div className="mt-2 p-4 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+                  <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
+                    {viewingContract.description || "No description provided"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-white/10">
+                <button
+                  onClick={() => setViewingContract(null)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                    border border-gray-200 dark:border-white/10
+                    bg-white dark:bg-white/5
+                    text-gray-700 dark:text-gray-300
+                    hover:bg-gray-50 dark:hover:bg-white/10"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

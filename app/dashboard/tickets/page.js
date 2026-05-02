@@ -739,7 +739,7 @@ export default function TicketsPage() {
     [tickets, selectedId]
   );
 
-  useEffect(() => { loadEverything(); }, []);
+  useEffect(() => { loadEverything(); }, [loadEverything]);
 
   useEffect(() => {
     if (selectedTicket) {

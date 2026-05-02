@@ -267,7 +267,7 @@ export function EventForm({ event, open, onOpenChange, onSave, onDelete, current
               {/* Attendees */}
               <div>
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Attendees</p>
-                <p className="mb-2.5 text-xs text-muted-foreground/60">Names for reference only. Use "Share with" to control visibility.</p>
+                <p className="mb-2.5 text-xs text-muted-foreground/60">Names for reference only. Use &quot;Share with&quot; to control visibility.</p>
                 {formData.attendees.length > 0 && (
                   <div className="mb-2 flex flex-wrap gap-1.5">
                     {formData.attendees.map((name, i) => (

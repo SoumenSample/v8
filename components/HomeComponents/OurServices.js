@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import styled from "styled-components";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -610,7 +611,6 @@ export default function OurServicesWithWires() {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (roRef.current)  roRef.current.disconnect();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pinRef = (i) => (el) => { pinRefs.current[i] = el; };
@@ -759,11 +759,13 @@ export default function OurServicesWithWires() {
             <div className="absolute bottom-[6px] left-[6px]  w-3 h-3 border-b border-l border-cyan-900/40" />
             <div className="absolute bottom-[6px] right-[6px] w-3 h-3 border-b border-r border-cyan-900/40" />
 
-            <img 
+            <Image 
               src="/logo2 copy.png" 
               alt="Cyberspace Works" 
+              width={180}
+              height={60}
               className="relative z-10 select-none" 
-              style={{ height: "auto", maxHeight: "60px", maxWidth: "180px" }}
+              style={{ maxHeight: "60px", maxWidth: "180px" }}
             />
           </div>
         </div>

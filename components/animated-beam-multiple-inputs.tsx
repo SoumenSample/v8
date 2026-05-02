@@ -1,6 +1,7 @@
 "use client"
 
 import React, { forwardRef, useRef } from "react"
+import Image from "next/image";
 import {
   FaLaptopCode, FaMobileAlt, FaCode,
   FaPalette, FaBullhorn, FaBrush, FaBrain,
@@ -76,9 +77,11 @@ export default function AnimatedBeamMultipleOutputDemo({
         </div>
         <div className="flex flex-col justify-center ">
           <Circle ref={div6Ref} className="size-16 ">
-            <img
+            <Image
               src="/logo2%20copy.png"
               alt="Logo"
+              width={32}
+              height={32}
               className="h-8 w-8 text-black"
             />
           </Circle>

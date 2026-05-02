@@ -35,3 +35,20 @@ export async function PUT(req, { params }) {
 
   return NextResponse.json({ payment: updated })
 }
+
+// DELETE
+export async function DELETE(req, { params }) {
+  await connectDB()
+
+  try {
+    const deleted = await Payment.findByIdAndDelete(params.id)
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Payment not found." }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    return NextResponse.json({ error: err?.message || "Unable to delete payment." }, { status: 500 })
+  }
+}
