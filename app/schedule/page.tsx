@@ -14,16 +14,29 @@ function normalizeValue(value: unknown) {
   return String(value || "").trim().toLowerCase()
 }
 
+function formatLocalDateKey(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+
+  return `${year}-${month}-${day}`
+}
+
+function parseLocalDateKey(key: string) {
+  const [year, month, day] = key.split("-").map(Number)
+  return new Date(year, month - 1, day)
+}
+
 function buildVisibleEventDates(filteredEvents: Array<{ date: Date }>) {
   const counts = new Map<string, number>()
 
   filteredEvents.forEach((event) => {
-    const key = event.date.toISOString().split("T")[0]
+    const key = formatLocalDateKey(event.date)
     counts.set(key, (counts.get(key) || 0) + 1)
   })
 
   return Array.from(counts.entries()).map(([date, count]) => ({
-    date: new Date(date),
+    date: parseLocalDateKey(date),
     count,
   }))
 }

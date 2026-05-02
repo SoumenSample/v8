@@ -25,6 +25,7 @@ export function DatePicker({ selectedDate, onDateSelect, events = [] }: DatePick
         mode="single"
         selected={date}
         onSelect={handleDateSelect}
+        eventDates={events}
         className="w-full [&_[role=gridcell]_button]:cursor-pointer [&_button]:cursor-pointer bg-background text-foreground"
       />
     </div>

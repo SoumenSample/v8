@@ -18,6 +18,32 @@ interface CalendarSidebarProps {
   className?: string
 }
 
+function formatLocalDateKey(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+
+  return `${year}-${month}-${day}`
+}
+
+function buildEventDates(events: Array<{ date: Date }>) {
+  const counts = new Map<string, number>()
+
+  events.forEach((event) => {
+    const key = formatLocalDateKey(new Date(event.date))
+    counts.set(key, (counts.get(key) || 0) + 1)
+  })
+
+  return Array.from(counts.entries()).map(([date, count]) => {
+    const [year, month, day] = date.split("-").map(Number)
+
+    return {
+      date: new Date(year, month - 1, day),
+      count,
+    }
+  })
+}
+
 export function CalendarSidebar({ 
   selectedDate,
   onDateSelect,
@@ -66,6 +92,7 @@ React.useEffect(() => {
     new Date(selectedDate).toDateString()
   );
 })
+  const eventDates = buildEventDates(eventsData)
   return (
     <div className={`flex flex-col h-full bg-background text-foreground ${className}`}>
       {/* Add New Event Button */}
@@ -83,7 +110,7 @@ React.useEffect(() => {
     <DatePicker
   selectedDate={selectedDate}
   onDateSelect={onDateSelect}
-  events={events}
+  events={eventDates.length > 0 ? eventDates : events}
 />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

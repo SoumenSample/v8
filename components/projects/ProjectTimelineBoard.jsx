@@ -278,6 +278,14 @@ export default function ProjectTimelineBoard({
         optimistic.progress =
           totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : optimistic.progress;
 
+        if (optimistic.progress >= 100) {
+          optimistic.status = "completed";
+        } else if (optimistic.status === "completed") {
+          optimistic.status = optimistic.progress > 0 ? "in-progress" : "planning";
+        } else if (!optimistic.status || optimistic.status === "planning") {
+          optimistic.status = optimistic.progress > 0 ? "in-progress" : "planning";
+        }
+
         setLocalProject(optimistic);
       }
 
