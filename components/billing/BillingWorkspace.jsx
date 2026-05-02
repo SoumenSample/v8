@@ -1094,10 +1094,10 @@ export default function BillingWorkspace({ mode = "client" }) {
 
         {canManage ? (
           <Card>
-            <CardHeader>
+            {/* <CardHeader>
               <CardTitle className="text-foreground">Saved Documents</CardTitle>
               <CardDescription>Edit-ready records with the same template structure.</CardDescription>
-            </CardHeader>
+            </CardHeader> */}
             <CardContent>
               {loading ? (
                 <p className="text-sm text-muted-foreground">Loading billing records...</p>
@@ -1109,7 +1109,7 @@ export default function BillingWorkspace({ mode = "client" }) {
                     <div className="space-y-3">
                       <div>
                         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Uploaded Documents</p>
-                        <p className="text-sm text-muted-foreground">Files uploaded through billing show here with download access.</p>
+                        {/* <p className="text-sm text-muted-foreground">Files uploaded through billing show here with download access.</p> */}
                       </div>
                       <div className="space-y-3">
                         {uploadedBills.map((bill) => (
