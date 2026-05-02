@@ -11,11 +11,10 @@ interface CalendarSidebarProps {
   onDateSelect?: (date: Date) => void
   onNewCalendar?: () => void
   onNewEvent?: () => void
-events?: Array<{
-  date: Date
-  title: string
-  time?: string
-}>
+  events?: Array<{
+    date: Date
+    count: number
+  }>
   className?: string
 }
 
@@ -28,10 +27,10 @@ export function CalendarSidebar({
   className 
 }: CalendarSidebarProps) {
   const [eventsData, setEventsData] = React.useState<{
-  date: Date
-  title: string
-  time?: string
-}[]>([]);
+    date: Date
+    title: string
+    time?: string
+  }[]>([])
 React.useEffect(() => {
   const fetchEvents = async () => {
     try {
@@ -58,15 +57,15 @@ React.useEffect(() => {
   };
 
   fetchEvents();
-}, []);
-const filteredEvents = eventsData.filter((event) => {
-  if (!selectedDate) return false;
+}, [])
+  const filteredEvents = eventsData.filter((event) => {
+  if (!selectedDate) return false
 
   return (
     new Date(event.date).toDateString() ===
     new Date(selectedDate).toDateString()
   );
-});
+})
   return (
     <div className={`flex flex-col h-full bg-background text-foreground ${className}`}>
       {/* Add New Event Button */}
@@ -84,7 +83,7 @@ const filteredEvents = eventsData.filter((event) => {
     <DatePicker
   selectedDate={selectedDate}
   onDateSelect={onDateSelect}
-  events={eventsData}
+  events={events}
 />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
