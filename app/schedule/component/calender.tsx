@@ -19,10 +19,13 @@ export function Calendar({ events, eventDates, currentUserEmail, currentUserId }
 
   return (
     <>
-      <div className="bg-background relative">
-        <div className="flex gap-4  z-10" style={{ minHeight: "800px" }}>
-          {/* Desktop Sidebar - Hidden on mobile/tablet, shown on extra large screens */}
-          <div className="hidden xl:block w-80 rounded-lg rounded-tl-none  overflow-hidden bg-background" style={{ flexShrink: 0 }}>
+      <div className="relative bg-background">
+        <div className="flex gap-4" style={{ minHeight: "820px" }}>
+
+          {/* Desktop Sidebar */}
+          <div
+            className="hidden xl:flex xl:flex-col w-72 shrink-0 rounded-2xl border border-border/60 dark:border-white/10 bg-background shadow-sm overflow-hidden"
+          >
             <CalendarSidebar
               selectedDate={calendar.selectedDate}
               onDateSelect={calendar.handleDateSelect}
@@ -32,9 +35,9 @@ export function Calendar({ events, eventDates, currentUserEmail, currentUserId }
               className="h-full"
             />
           </div>
-          
-          {/* Main Calendar Panel */}
-          <div className="flex-1 min-w-0 rounded-lg rounded-tr-none border border-border/70 dark:border-white/15 overflow-hidden bg-background">
+
+          {/* Main panel */}
+          <div className="flex-1 min-w-0 rounded-2xl border border-border/60 dark:border-white/10 bg-background shadow-sm overflow-hidden">
             <CalendarMain
               events={events}
               eventDates={eventDates}
@@ -44,14 +47,12 @@ export function Calendar({ events, eventDates, currentUserEmail, currentUserId }
           </div>
         </div>
 
-        {/* Mobile/Tablet Sheet - Positioned relative to calendar container */}
+        {/* Mobile sidebar sheet */}
         <Sheet open={calendar.showCalendarSheet} onOpenChange={calendar.setShowCalendarSheet}>
-          <SheetContent side="left" className="w-80 p-0" style={{ position: 'absolute' }}>
-            <SheetHeader className="p-4 pb-2">
-              <SheetTitle className="">Calendar</SheetTitle>
-              <SheetDescription className="">
-                Browse dates and manage your calendar events
-              </SheetDescription>
+          <SheetContent side="left" className="w-72 p-0" style={{ position: "absolute" }}>
+            <SheetHeader className="px-4 pt-4 pb-2">
+              <SheetTitle className="text-base">Calendar</SheetTitle>
+              <SheetDescription className="text-sm">Browse dates and manage events</SheetDescription>
             </SheetHeader>
             <CalendarSidebar
               selectedDate={calendar.selectedDate}
@@ -65,7 +66,7 @@ export function Calendar({ events, eventDates, currentUserEmail, currentUserId }
         </Sheet>
       </div>
 
-      {/* Event Form Dialog */}
+      {/* Event form */}
       <EventForm
         event={calendar.editingEvent}
         open={calendar.showEventForm}

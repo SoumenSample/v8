@@ -12,21 +12,21 @@ interface DatePickerProps {
 export function DatePicker({ selectedDate, onDateSelect, events = [] }: DatePickerProps) {
   const [date, setDate] = useState<Date | undefined>(selectedDate || new Date())
 
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      setDate(selectedDate)
-      onDateSelect?.(selectedDate)
+  const handleDateSelect = (selected: Date | undefined) => {
+    if (selected) {
+      setDate(selected)
+      onDateSelect?.(selected)
     }
   }
 
   return (
-    <div className="flex justify-center bg-background text-foreground">
-      <Calendar 
+    <div className="overflow-hidden px-2 py-1">
+      <Calendar
         mode="single"
         selected={date}
         onSelect={handleDateSelect}
         eventDates={events}
-        className="w-full [&_[role=gridcell]_button]:cursor-pointer [&_button]:cursor-pointer bg-background text-foreground"
+        className="w-full max-w-full [&_button]:cursor-pointer"
       />
     </div>
   )
