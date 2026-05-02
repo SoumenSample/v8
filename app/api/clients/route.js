@@ -10,10 +10,21 @@ import Lead from "@/lib/models/Lead";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function normalizePhone(value) {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  return value.trim().replace(/[()\s-]/g, "");
+}
+
 const createClientSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email(),
-  phone: z.string().trim().regex(/^[0-9]{10,15}$/),
+  phone: z.preprocess(
+    normalizePhone,
+    z.string().regex(/^\+?[0-9]{10,15}$/, "Phone number must contain 10 to 15 digits and may start with +")
+  ),
   age: z.coerce.number().int().min(1).max(120).optional(),
   region: z.string().trim().max(120).optional().default(""),
   services: z.array(z.string().trim().min(1)).min(1),
@@ -124,6 +135,7 @@ export async function POST(request) {
       ...validated,
       age: typeof validated.age === "number" ? validated.age : null,
       region: validated.region || "",
+      phone: normalizePhone(validated.phone),
       validFrom: new Date(validated.validFrom),
       validTo: new Date(validated.validTo),
       source: validated.source || "manual-admin",
@@ -190,7 +202,7 @@ export async function PATCH(request) {
       client = await Client.create({
         name: String(updateData.name || user.name || "").trim(),
         email: String(updateData.email || user.email || "").trim().toLowerCase(),
-        phone: String(updateData.phone || user.phone || "0000000000").trim(),
+        phone: normalizePhone(String(updateData.phone || user.phone || "0000000000")),
         age: nextAge,
         region: String(updateData.region || user.region || "").trim(),
         services: Array.isArray(updateData.services) ? updateData.services : [],
@@ -258,6 +270,10 @@ export async function PATCH(request) {
             updates.age = null;
           } else if (Number.isFinite(Number(updateData.age))) {
             updates.age = Number(updateData.age);
+          }
+        } else if (field === "phone") {
+          if (typeof updateData.phone === "string") {
+            updates.phone = normalizePhone(updateData.phone);
           }
         } else {
           updates[field] = updateData[field];

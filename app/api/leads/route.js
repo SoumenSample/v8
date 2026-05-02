@@ -11,10 +11,21 @@ import { emitToUsers } from "@/lib/socket/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function normalizePhone(value) {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  return value.trim().replace(/[()\s-]/g, "");
+}
+
 const createLeadSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email(),
-  phone: z.string().trim().regex(/^[0-9]{10,15}$/),
+  phone: z.preprocess(
+    normalizePhone,
+    z.string().regex(/^\+?[0-9]{10,15}$/, "Phone number must contain 10 to 15 digits and may start with +")
+  ),
   services: z.array(z.string().trim().min(1)).min(1),
   requirement: z.string().trim().max(3000).optional().default(""),
   budget: z.string().trim().max(120).optional().default(""),
@@ -120,7 +131,7 @@ export async function POST(request) {
     const leadPayload = {
       name: parsed.data.name,
       email: parsed.data.email.toLowerCase(),
-      phone: parsed.data.phone,
+      phone: normalizePhone(parsed.data.phone),
       services: parsed.data.services,
       requirement: parsed.data.requirement,
       budget: parsed.data.budget,

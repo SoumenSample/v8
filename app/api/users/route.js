@@ -90,6 +90,20 @@ export async function POST(request) {
 
     // If role is client and validFrom/validTo are provided, validate them
     if (parsed.data.role === "client") {
+      if (parsed.data.age === undefined || parsed.data.age === null) {
+        return Response.json(
+          { error: "Age is required for client users" },
+          { status: 400 }
+        );
+      }
+
+      if (!parsed.data.region || !parsed.data.region.trim()) {
+        return Response.json(
+          { error: "Region is required for client users" },
+          { status: 400 }
+        );
+      }
+
       if (!parsed.data.validFrom || !parsed.data.validTo) {
         return Response.json(
           { error: "Contract dates (validFrom and validTo) are required for client users" },

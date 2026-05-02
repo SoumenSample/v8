@@ -8,10 +8,21 @@ import Lead from "@/lib/models/Lead";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function normalizePhone(value) {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  return value.trim().replace(/[()\s-]/g, "");
+}
+
 const updateLeadSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email(),
-  phone: z.string().trim().regex(/^[0-9]{10,15}$/),
+  phone: z.preprocess(
+    normalizePhone,
+    z.string().regex(/^\+?[0-9]{10,15}$/, "Phone number must contain 10 to 15 digits and may start with +")
+  ),
   services: z.array(z.string().trim().min(1)).min(1),
   requirement: z.string().trim().max(3000).optional().default(""),
   budget: z.string().trim().max(120).optional().default(""),
@@ -41,7 +52,7 @@ export async function PATCH(request, { params }) {
       {
         name: validated.data.name,
         email: validated.data.email.toLowerCase(),
-        phone: validated.data.phone,
+        phone: normalizePhone(validated.data.phone),
         services: validated.data.services,
         requirement: validated.data.requirement,
         budget: validated.data.budget,

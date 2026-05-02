@@ -88,6 +88,8 @@ export default function UsersPage() {
   const [projectName, setProjectName] = useState("")
   const [projectDescription, setProjectDescription] = useState("")
   const [phone, setPhone] = useState("")
+  const [age, setAge] = useState("")
+  const [region, setRegion] = useState("")
   const [source, setSource] = useState("")
   const [validFrom, setValidFrom] = useState("")
   const [validTo, setValidTo] = useState("")
@@ -128,6 +130,14 @@ export default function UsersPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (role === "client" && !age.trim()) {
+      setError("Age is required for client users.")
+      return
+    }
+    if (role === "client" && !region.trim()) {
+      setError("Region is required for client users.")
+      return
+    }
     if (role === "client" && (!validFrom || !validTo)) {
       setError("Contract starting and ending dates are required for client users.")
       return
@@ -150,6 +160,8 @@ export default function UsersPage() {
     try {
       const payload: any = { name, email, password, role }
       if (role === "client") {
+        payload.age = age ? Number(age) : undefined
+        payload.region = region.trim()
         payload.finalBudget = finalBudget
         payload.projectName = projectName
         payload.projectDescription = projectDescription
@@ -168,7 +180,7 @@ export default function UsersPage() {
       setMessage("User created successfully.")
       setName(""); setEmail(""); setPassword(""); setRole("client")
       setFinalBudget(""); setProjectName(""); setProjectDescription("")
-      setValidFrom(""); setValidTo(""); setSource(""); setClientStatus("active")
+      setPhone(""); setAge(""); setRegion(""); setValidFrom(""); setValidTo(""); setSource(""); setClientStatus("active")
       setOpen(false)
       setUsers(data.users || [])
     } catch (err: any) {
@@ -419,6 +431,29 @@ export default function UsersPage() {
                           placeholder="Referral, Ads, Instagram…"
                           value={source}
                           onChange={(e) => setSource(e.target.value)}
+                        />
+                      </FieldGroup>
+
+                      <FieldGroup label="Age" icon={Calendar}>
+                        <Input
+                          className={inputCls}
+                          type="number"
+                          min="1"
+                          max="120"
+                          placeholder="28"
+                          value={age}
+                          onChange={(e) => setAge(e.target.value)}
+                          required={role === "client"}
+                        />
+                      </FieldGroup>
+
+                      <FieldGroup label="Region" icon={Info}>
+                        <Input
+                          className={inputCls}
+                          placeholder="UAE, Dubai"
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          required={role === "client"}
                         />
                       </FieldGroup>
                     </div>

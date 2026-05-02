@@ -17,6 +17,8 @@ import { toast } from "sonner"
 import {
   Clock5,
   CreditCard,
+  X,
+  Eye,
   MoreVertical,
   Pencil,
   Trash2,
@@ -76,6 +78,7 @@ export default function UsersPage() {
   const [loadingClients, setLoadingClients] = useState(true)
   const [stats, setStats] = useState({ totalClients: 0, convertedFromLeads: 0, activeClients: 0 })
   const [editingClient, setEditingClient] = useState<any>(null)
+  const [viewingClient, setViewingClient] = useState<any>(null)
   const [editForm, setEditForm] = useState<any>({})
   const [isSaving, setIsSaving] = useState(false)
   const [editError, setEditError] = useState("")
@@ -112,6 +115,14 @@ export default function UsersPage() {
       setError("Contract starting and ending dates are required for client users.")
       return
     }
+    if (role === "client" && !age.trim()) {
+      setError("Age is required for client users.")
+      return
+    }
+    if (role === "client" && !region.trim()) {
+      setError("Region is required for client users.")
+      return
+    }
     if (role === "client" && !finalBudget) {
       setError("Final budget is required for client users.")
       return
@@ -132,7 +143,7 @@ export default function UsersPage() {
       if (role === "client") {
         payload.source = source
         payload.age = age ? Number(age) : undefined
-        payload.region = region
+        payload.region = region.trim()
         payload.finalBudget = finalBudget
         payload.projectName = projectName
         payload.projectDescription = projectDescription
@@ -218,6 +229,14 @@ export default function UsersPage() {
     setEditingClient(null)
     setEditForm({})
     setEditError("")
+  }
+
+  const openClientDetails = (client: any) => {
+    setViewingClient(client)
+  }
+
+  const closeClientDetails = () => {
+    setViewingClient(null)
   }
 
   const handleSaveEdit = async () => {
@@ -438,27 +457,6 @@ export default function UsersPage() {
                           <Label htmlFor="phone" className="text-xs">Phone</Label>
                           <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                         </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="age" className="text-xs">Age</Label>
-                            <Input
-                              id="age"
-                              type="number"
-                              min="1"
-                              max="120"
-                              value={age}
-                              onChange={(e) => setAge(e.target.value)}
-                              placeholder="28"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="region" className="text-xs">Region</Label>
-                            <Input
-                              id="region"
-                              value={region}
-                              onChange={(e) => setRegion(e.target.value)}
-                              placeholder="UAE, Dubai"
-                            />
-                          </div>
                       </div>
 
                       <div className="space-y-1.5">
@@ -494,6 +492,29 @@ export default function UsersPage() {
 
                       {role === "client" && (
                         <>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="age" className="text-xs">Age *</Label>
+                              <Input
+                                id="age"
+                                type="number"
+                                min="1"
+                                max="120"
+                                value={age}
+                                onChange={(e) => setAge(e.target.value)}
+                                placeholder="28"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="region" className="text-xs">Region *</Label>
+                              <Input
+                                id="region"
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                                placeholder="UAE, Dubai"
+                              />
+                            </div>
+                          </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                               <Label htmlFor="finalBudget" className="text-xs">Final Budget *</Label>
@@ -760,6 +781,13 @@ export default function UsersPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-36">
                                 <DropdownMenuItem
+                                  onClick={() => openClientDetails(user)}
+                                  className="cursor-pointer gap-2 text-sm"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
                                   onClick={() => handleEditUser(user)}
                                   className="cursor-pointer gap-2 text-sm"
                                 >
@@ -1015,6 +1043,87 @@ export default function UsersPage() {
                 <Button className="flex-1" onClick={handleSaveEdit} disabled={isSaving}>
                   {isSaving ? "Saving…" : "Save Changes"}
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewingClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card/95 backdrop-blur-sm px-6 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Client Details</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Full record for {viewingClient.name}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 border border-border/70 bg-background text-foreground/80 hover:bg-muted hover:text-foreground"
+                onClick={closeClientDetails}
+                aria-label="Close client details"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Name</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.name || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                <p className="mt-1 text-sm text-foreground break-all">{viewingClient.email || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Phone</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.phone || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Age / Region</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.age || "N/A"} / {viewingClient.region || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Final Budget</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.finalBudget || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Initial Budget</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.budget || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Project Name</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.projectName || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
+                <p className="mt-1 text-sm text-foreground capitalize">{String(viewingClient.status || (viewingClient.isActive ? "active" : "inactive"))}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Contract Start</p>
+                <p className="mt-1 text-sm text-foreground">{formatDate(viewingClient.validFrom)}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Contract End</p>
+                <p className="mt-1 text-sm text-foreground">{formatDate(viewingClient.validTo)}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Source</p>
+                <p className="mt-1 text-sm text-foreground">{viewingClient.source || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Created At</p>
+                <p className="mt-1 text-sm text-foreground">{formatDate(viewingClient.createdAt)}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Services</p>
+                <p className="mt-1 text-sm text-foreground">{(viewingClient.services || []).join(", ") || "N/A"}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Project Description</p>
+                <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{viewingClient.projectDescription || "N/A"}</p>
               </div>
             </div>
           </div>

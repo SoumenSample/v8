@@ -66,6 +66,7 @@ export default function UsersPage() {
   const [showConvertModal, setShowConvertModal] = useState(null)
   const [convertedCount, setConvertedCount] = useState(0)
   const [editingLead, setEditingLead] = useState(null)
+  const [viewingLead, setViewingLead] = useState(null)
   const [editForm, setEditForm] = useState({
     name: "",
     email: "",
@@ -190,6 +191,15 @@ export default function UsersPage() {
       status: lead?.status || "active",
     })
     setEditError("")
+  }
+
+  function openLeadDetails(lead) {
+    setViewingLead(lead)
+    setError("")
+  }
+
+  function closeLeadDetails() {
+    setViewingLead(null)
   }
 
   function onEditFieldChange(event) {
@@ -543,6 +553,9 @@ export default function UsersPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-40 rounded-xl border border-border bg-popover p-1 shadow-lg dark:border-zinc-700">
+                              <DropdownMenuItem className="cursor-pointer rounded-lg px-3 py-2 text-sm text-popover-foreground hover:bg-muted" onClick={() => openLeadDetails(lead)}>
+                                View
+                              </DropdownMenuItem>
                               <DropdownMenuItem className="cursor-pointer rounded-lg px-3 py-2 text-sm text-popover-foreground hover:bg-muted" onClick={() => openEditModal(lead)}>
                                 Edit lead
                               </DropdownMenuItem>
@@ -804,6 +817,73 @@ export default function UsersPage() {
                       </span>
                     ) : "Save Changes"}
                   </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {viewingLead && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg bg-popover rounded-2xl border border-border shadow-2xl overflow-hidden dark:border-zinc-700 dark:bg-popover">
+              <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-zinc-700">
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Lead Details</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Full record for {viewingLead.name}</p>
+                </div>
+                <button
+                  onClick={closeLeadDetails}
+                  className="rounded-lg border border-border/70 bg-background p-1 text-foreground/80 transition-colors hover:bg-muted hover:text-foreground dark:border-zinc-700 dark:bg-popover dark:text-zinc-300 dark:hover:bg-zinc-700/10 dark:hover:text-zinc-100"
+                  aria-label="Close lead details"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[70vh]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Name</p>
+                    <p className="text-sm text-foreground">{viewingLead.name || "N/A"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                    <p className="text-sm text-foreground break-all">{viewingLead.email || "N/A"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Phone</p>
+                    <p className="text-sm text-foreground">{viewingLead.phone || "N/A"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Budget</p>
+                    <p className="text-sm text-foreground">{viewingLead.budget ? `₹${viewingLead.budget}` : "N/A"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Source</p>
+                    <p className="text-sm text-foreground">{viewingLead.source || "N/A"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
+                    <p className="text-sm text-foreground capitalize">{String(viewingLead.status || "active")}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Created At</p>
+                    <p className="text-sm text-foreground">{new Date(viewingLead.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Time</p>
+                    <p className="text-sm text-foreground">{new Date(viewingLead.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Services</p>
+                  <p className="text-sm text-foreground">{(viewingLead.services || []).join(", ") || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Requirement</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{viewingLead.requirement || "N/A"}</p>
                 </div>
               </div>
             </div>
