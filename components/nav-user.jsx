@@ -27,6 +27,13 @@ export function NavUser({
   user
 }) {
   const { isMobile } = useSidebar()
+  const nameParts = String(user?.name || "").trim().split(/\s+/).filter(Boolean)
+  const initials = nameParts.length >= 2
+    ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+    : nameParts.length === 1
+      ? nameParts[0][0].toUpperCase()
+      : "U"
+  const avatarSrc = user?.avatar && user.avatar !== "/logo2.png" ? user.avatar : ""
 
   return (
     <SidebarMenu>
@@ -36,9 +43,9 @@ export function NavUser({
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              <Avatar className="h-8 w-8 rounded-full grayscale">
+                {avatarSrc ? <AvatarImage src={avatarSrc} alt={user?.name || "User"} /> : null}
+                <AvatarFallback className="rounded-full">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -56,9 +63,9 @@ export function NavUser({
             sideOffset={4}>
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <Avatar className="h-8 w-8 rounded-full">
+                  {avatarSrc ? <AvatarImage src={avatarSrc} alt={user?.name || "User"} /> : null}
+                  <AvatarFallback className="rounded-full">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
