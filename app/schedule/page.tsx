@@ -48,11 +48,12 @@ export default async function CalendarPage() {
   await connectToDatabase()
   const currentUserEmail = session.user.email
   const userModel = User as any
+    const eventModel = Event as any
   const currentUser = await userModel.findOne({ email: session.user.email }).select("role").lean()
 
-  const rawEvents = currentUser?.role === "admin"
-    ? await Event.find().sort({ date: 1 }).lean()
-    : await Event.find({ assignedToEmails: userEmail }).sort({ date: 1 }).lean()
+    const rawEvents = currentUser?.role === "admin"
+      ? await eventModel.find().sort({ date: 1 }).lean()
+      : await eventModel.find({ assignedToEmails: userEmail }).sort({ date: 1 }).lean()
 
   const events = rawEvents.map((event, index) => ({
     id: index + 1,

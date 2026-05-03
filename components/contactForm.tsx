@@ -90,7 +90,7 @@ export default function ContractForm({ open, setOpen, onSuccess, initialData = n
       const url = initialData ? `/api/contracts/${initialData._id}` : "/api/contracts"
 
       // Build clean request body
-      const requestBody = {
+        const requestBody: any = {
         description: form.description.trim(),
         reference: form.reference.trim(),
         recipientType: form.recipientType,
