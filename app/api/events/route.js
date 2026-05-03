@@ -381,7 +381,15 @@ export async function GET() {
   try {
     await connectToDatabase();
 
-    const events = await Event.find().sort({ date: 1 });
+    const session = await getServerSession(authOptions);
+    const currentEmail = normalizeEmail(session?.user?.email);
+    const isAdmin = session?.user?.role === "admin";
+
+    const query = isAdmin || !currentEmail
+      ? {}
+      : { assignedToEmails: currentEmail };
+
+    const events = await Event.find(query).sort({ date: 1 });
     return NextResponse.json({ events });
   } catch (error) {
     console.error("GET EVENT ERROR:", error);
