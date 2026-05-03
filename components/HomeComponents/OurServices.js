@@ -762,7 +762,7 @@ export default function OurServicesWithWires() {
             <Image 
               src="/logo2 copy.png" 
               alt="Cyberspace Works" 
-              width={180}
+              width={60}
               height={60}
               className="relative z-10 select-none" 
               style={{ maxHeight: "60px", maxWidth: "180px" }}
