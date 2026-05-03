@@ -1,116 +1,3 @@
-// // "use client"
-
-// // import { useEffect, useState } from "react"
-// // import { Button } from "@/components/ui/button"
-// // import ContractForm from "@/components/contactForm"
-
-// // export default function ContractPage() {
-// //   const [contracts, setContracts] = useState([])
-// //   const [open, setOpen] = useState(false)
-
-// //   const loadData = async () => {
-// //     const res = await fetch("/api/contracts")
-// //     const data = await res.json()
-// //     setContracts(data.contracts || [])
-// //   }
-
-// //   useEffect(() => {
-// //     loadData()
-// //   }, [])
-
-// //   return (
-// //     <div className="p-6 space-y-6">
-
-// //       {/* HEADER */}
-// //       <div className="flex justify-between items-center">
-// //         <h2 className="text-xl font-bold">Contracts</h2>
-// //         <Button onClick={() => setOpen(true)}>
-// //           Add Contract
-// //         </Button>
-// //       </div>
-
-// //       {/* LIST */}
-// //       <div className="grid gap-4 text-black dark:text-white dark:bg-black">
-// //         {contracts.map((c: any) => (
-// //           <div key={c._id} className="border rounded p-4">
-// //             <p><strong>Description:</strong> {c.description}</p>
-// //             <p><strong>Date:</strong> {new Date(c.date).toLocaleDateString()}</p>
-// //             <p><strong>Reference:</strong> {c.reference}</p>
-// //             <p><strong>Client Email:</strong> {c.clientEmail}</p>
-
-// //             {c.signature && (
-// //               <p className="text-sm text-blue-500">
-// //                 Signature: {c.signature}
-// //               </p>
-// //             )}
-// //           </div>
-// //         ))}
-// //       </div>
-
-// //       {/* MODAL */}
-// //       <ContractForm open={open} setOpen={setOpen} onSuccess={loadData} />
-
-// //     </div>
-// //   )
-// // }
-
-
-// "use client"
-
-// import { useEffect, useState } from "react"
-// import { Button } from "@/components/ui/button"
-// import ContractForm from "@/components/contactForm"
-
-// export default function AdminContracts() {
-//   const [contracts, setContracts] = useState([])
-//   const [open, setOpen] = useState(false)
-
-//   const loadContracts = async () => {
-//     const res = await fetch("/api/contracts")
-//     const data = await res.json()
-//     setContracts(data.contracts || [])
-//     console.log(data.contracts);
-//   }
-
-//   useEffect(() => {
-//     loadContracts()
-//   }, [])
-
-//   return (
-//     <div className="p-6 space-y-6">
-
-//       {/* HEADER */}
-//       <div className="flex justify-between items-center text-black dark:text-white ">
-//         <h2 className="text-xl font-bold">All Contracts</h2>
-//         <Button onClick={() => setOpen(true)} className="">
-//           Add Contact
-//         </Button>
-//       </div>
-
-//       {/* LIST */}
-//       <div className="grid gap-4">
-//         {contracts.map((c: any) => (
-//           <div key={c._id} className="border p-4 rounded text-black dark:text-white dark:bg-black space-y-2">
-//             <p><b>Email:</b> {c.clientEmail}</p>
-//             <p><b>Reference:</b>{c.reference}</p>
-//             <p><b>Description</b>{c.description}</p>
-//             <p>Status: {c.status} ({new Date(c.signedDate).toLocaleDateString()})</p>
-//           </div>
-//         ))}
-//       </div>
-
-//       <ContractForm
-//         open={open}
-//         setOpen={setOpen}
-//         onSuccess={loadContracts}
-//       />
-
-//     </div>
-//   )
-// }
-
-
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -118,17 +5,26 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import ContractForm from "@/components/contactForm"
 
-export default function AdminContracts() {
+export default function EmployeeContractsPage() {
   const [contracts, setContracts] = useState([])
   const [open, setOpen] = useState(false)
   const [editingContract, setEditingContract] = useState(null)
   const [viewingContract, setViewingContract] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   const loadContracts = async () => {
-    const res = await fetch("/api/contracts?recipientType=client")
-    const data = await res.json()
-    setContracts(data.contracts || [])
-    console.log(data.contracts)
+    setLoading(true)
+    try {
+      const res = await fetch("/api/contracts?recipientType=employee")
+      const data = await res.json()
+      setContracts(data.contracts || [])
+      console.log("Employee Contracts:", data.contracts)
+    } catch (error) {
+      console.error("Error loading contracts:", error)
+      alert("Error loading contracts")
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -137,7 +33,7 @@ export default function AdminContracts() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this contract?")) return
-    
+
     try {
       const res = await fetch(`/api/contracts/${id}`, {
         method: "DELETE",
@@ -173,9 +69,9 @@ export default function AdminContracts() {
   }
 
   const statusStyles: Record<string, string> = {
-    signed:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    completed:"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    pending:  "bg-amber-100  text-amber-700  dark:bg-amber-900/30  dark:text-amber-400",
+    signed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    pending: "bg-amber-100  text-amber-700  dark:bg-amber-900/30  dark:text-amber-400",
     rejected: "bg-rose-100   text-rose-700   dark:bg-rose-900/30   dark:text-rose-400",
   }
 
@@ -185,13 +81,13 @@ export default function AdminContracts() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Client Contracts</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Employee Contracts</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             {contracts.length} contract{contracts.length !== 1 ? "s" : ""} found
           </p>
         </div>
         <Button onClick={() => setOpen(true)}>
-          + Add Contract
+          + Issue Contract
         </Button>
       </div>
 
@@ -203,7 +99,7 @@ export default function AdminContracts() {
             {/* Head */}
             <thead>
               <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
-                {["Client Email", "Reference", "Description", "Status", "Signed Date", "Actions"].map((col) => (
+                {["Employee Email", "Reference", "Description", "Status", "Signed Date", "Actions"].map((col) => (
                   <th
                     key={col}
                     className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 whitespace-nowrap"
@@ -216,7 +112,19 @@ export default function AdminContracts() {
 
             {/* Body */}
             <tbody className="divide-y divide-gray-100 dark:divide-white/5 bg-gray-50 dark:bg-white/5">
-              {contracts.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center text-gray-400 dark:text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 animate-spin">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                      </svg>
+                      <span className="text-sm">Loading...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : contracts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-gray-400 dark:text-gray-500">
                     <div className="flex flex-col items-center gap-2">
@@ -226,7 +134,7 @@ export default function AdminContracts() {
                         <line x1="9" y1="13" x2="15" y2="13"/>
                         <line x1="9" y1="17" x2="12" y2="17"/>
                       </svg>
-                      <span className="text-sm">No contracts yet</span>
+                      <span className="text-sm">No employee contracts yet</span>
                     </div>
                   </td>
                 </tr>
@@ -240,9 +148,9 @@ export default function AdminContracts() {
                       key={c._id}
                       className="hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                     >
-                      {/* Email */}
+                      {/* Employee Email */}
                       <td className="px-5 py-4 text-gray-900 dark:text-white font-medium whitespace-nowrap">
-                        {c.clientEmail || "—"}
+                        {c.employeeEmail || "—"}
                       </td>
 
                       {/* Reference */}
@@ -324,9 +232,9 @@ export default function AdminContracts() {
         )}
       </div>
 
-      <ContractForm 
-        open={open} 
-        setOpen={handleFormClose} 
+      <ContractForm
+        open={open}
+        setOpen={handleFormClose}
         onSuccess={handleFormSuccess}
         initialData={editingContract}
       />
@@ -351,8 +259,8 @@ export default function AdminContracts() {
               {/* Details Grid */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Client Email</label>
-                  <p className="text-sm text-gray-900 dark:text-white mt-1 break-all">{viewingContract.clientEmail || "—"}</p>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Employee Email</label>
+                  <p className="text-sm text-gray-900 dark:text-white mt-1 break-all">{viewingContract.employeeEmail || "—"}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reference</label>

@@ -62,9 +62,13 @@ export async function PUT(req, { params }) {
 
     // ✅ Only add fields to updateData if they are actually provided
     if (body.description !== undefined && body.description !== null) updateData.description = body.description
-    if (body.clientEmail !== undefined && body.clientEmail !== null) updateData.clientEmail = body.clientEmail
     if (body.reference !== undefined && body.reference !== null) updateData.reference = body.reference
     if (body.signature !== undefined && body.signature !== null) updateData.signature = body.signature
+    
+    // ✅ Handle both client and employee emails
+    if (body.clientEmail !== undefined && body.clientEmail !== null) updateData.clientEmail = body.clientEmail
+    if (body.employeeEmail !== undefined && body.employeeEmail !== null) updateData.employeeEmail = body.employeeEmail
+    if (body.recipientType !== undefined && body.recipientType !== null) updateData.recipientType = body.recipientType
     
     // ✅ Handle date -> signedDate conversion (form sends 'date', DB uses 'signedDate')
     if (body.signedDate !== undefined && body.signedDate !== null) updateData.signedDate = body.signedDate
@@ -73,18 +77,19 @@ export async function PUT(req, { params }) {
     // ✅ Check if ANY contract detail field is being changed
     const descriptionChanged = body.description !== undefined && body.description !== existingContract.description
     const clientEmailChanged = body.clientEmail !== undefined && body.clientEmail !== existingContract.clientEmail
+    const employeeEmailChanged = body.employeeEmail !== undefined && body.employeeEmail !== existingContract.employeeEmail
     const referenceChanged = body.reference !== undefined && body.reference !== existingContract.reference
     
-    const isAnyDetailChanged = descriptionChanged || clientEmailChanged || referenceChanged
+    const isAnyDetailChanged = descriptionChanged || clientEmailChanged || employeeEmailChanged || referenceChanged
 
-    // ✅ If ANY contract detail is being updated and NOT signing, clear client signature and reset to pending
+    // ✅ If ANY contract detail is being updated and NOT signing, clear signature and reset to pending
     // This ensures a previously completed contract moves back to pending and requires re-signing.
     if (isAnyDetailChanged && !body.signature) {
       updateData.signature = null
       updateData.signedDate = null
       updateData.status = "pending"
     }
-    // ✅ Auto-update status to "completed" when client signature is added
+    // ✅ Auto-update status to "completed" when signature is added
     else if (body.signature) {
       updateData.status = "completed"
     }

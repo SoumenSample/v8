@@ -11,7 +11,13 @@ export default function ContractForm({ open, setOpen, onSuccess, initialData = n
     signature: "",
     reference: "",
     clientEmail: "",
+    employeeEmail: "",
+    recipientType: "client",
   })
+
+  const [recipients, setRecipients] = useState([])
+  const [loadingRecipients, setLoadingRecipients] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (initialData) {
@@ -21,6 +27,8 @@ export default function ContractForm({ open, setOpen, onSuccess, initialData = n
         signature: initialData.signature || "",
         reference: initialData.reference || "",
         clientEmail: initialData.clientEmail || "",
+        employeeEmail: initialData.employeeEmail || "",
+        recipientType: initialData.recipientType || "client",
       })
     } else {
       setForm({
@@ -29,106 +37,234 @@ export default function ContractForm({ open, setOpen, onSuccess, initialData = n
         signature: "",
         reference: "",
         clientEmail: "",
+        employeeEmail: "",
+        recipientType: "client",
       })
     }
   }, [initialData, open])
 
+  // Fetch recipients when dialog opens or recipientType changes
+  useEffect(() => {
+    if (open && !initialData) {
+      fetchRecipients(form.recipientType)
+    }
+  }, [open, form.recipientType])
+
+  const fetchRecipients = async (type: string) => {
+    setLoadingRecipients(true)
+    try {
+      const res = await fetch(`/api/recipients?role=${type}`)
+      const data = await res.json()
+      setRecipients(data.recipients || [])
+    } catch (error) {
+      console.error("Error fetching recipients:", error)
+      alert("Error loading recipients")
+    } finally {
+      setLoadingRecipients(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const method = initialData ? "PUT" : "POST"
-    const url = initialData ? `/api/contracts/${initialData._id}` : "/api/contracts"
+    const recipientEmail = form.recipientType === "employee" ? form.employeeEmail : form.clientEmail
 
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    })
-    console.log(form)
+    if (!recipientEmail) {
+      alert(`Please select a ${form.recipientType === "employee" ? "employee" : "client"}`)
+      return
+    }
 
-    setOpen(false)
-    onSuccess()
+    if (!form.description.trim()) {
+      alert("Please enter contract description")
+      return
+    }
+
+    if (!form.reference.trim()) {
+      alert("Please enter reference")
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const method = initialData ? "PUT" : "POST"
+      const url = initialData ? `/api/contracts/${initialData._id}` : "/api/contracts"
+
+      // Build clean request body
+      const requestBody = {
+        description: form.description.trim(),
+        reference: form.reference.trim(),
+        recipientType: form.recipientType,
+      }
+
+      if (form.recipientType === "employee") {
+        requestBody.employeeEmail = form.employeeEmail.toLowerCase().trim()
+      } else {
+        requestBody.clientEmail = form.clientEmail.toLowerCase().trim()
+      }
+
+      // Add optional fields if editing
+      if (initialData) {
+        if (form.signature) requestBody.signature = form.signature.trim()
+        if (form.date) requestBody.signedDate = form.date
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (res.ok) {
+        setOpen(false)
+        onSuccess()
+      } else {
+        const errorData = await res.json()
+        alert(`Error saving contract: ${errorData.error || "Unknown error"}`)
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      alert("Error saving contract: " + error.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const isEditing = !!initialData
+  const currentRecipientEmail = form.recipientType === "employee" ? form.employeeEmail : form.clientEmail
+  const selectedRecipient = recipients.find(r => r.email === currentRecipientEmail)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
 
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 dark:border-white/10">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-white/10 flex-shrink-0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-              className="text-gray-600 dark:text-gray-300">
-              <path d="M3 7h18" />
-              <path d="M3 12h18" />
-              <path d="M3 17h18" />
-            </svg>
-          </div>
-          <div>
-            <DialogTitle className="text-sm font-bold text-gray-900 dark:text-white">
-              {isEditing ? "Edit Contract" : "New Contract"}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-gray-400 dark:text-gray-500">
-              {isEditing ? "Update contract details and save" : "Fill in contract details and save"}
-            </DialogDescription>
-          </div>
+        <div className="border-b border-gray-200 dark:border-zinc-800 pb-4">
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-zinc-50">
+            {isEditing ? "Edit Contract" : "Issue Contract"}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
+            {isEditing ? "Update contract details" : "Create a new contract"}
+          </DialogDescription>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          <textarea
-            placeholder="Contract description"
-            className="w-full border p-2 rounded"
-            value={form.description}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
-          />
+          {/* Recipient Type Selector */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Issue To</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({ ...form, recipientType: "client", clientEmail: "", employeeEmail: "" })
+                }}
+                className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition ${
+                  form.recipientType === "client"
+                    ? "bg-blue-50 dark:bg-zinc-950 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-zinc-700"
+                    : "bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600"
+                }`}
+              >
+                Client
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({ ...form, recipientType: "employee", clientEmail: "", employeeEmail: "" })
+                }}
+                className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition ${
+                  form.recipientType === "employee"
+                    ? "bg-blue-50 dark:bg-zinc-950 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-zinc-700"
+                    : "bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600"
+                }`}
+              >
+                Employee
+              </button>
+            </div>
+          </div>
 
-          <input
-            type="date"
-            className="w-full border p-2 rounded"
-            value={form.date}
-            onChange={(e) =>
-              setForm({ ...form, date: e.target.value })
-            }
-          />
+          {/* Recipient Email Dropdown */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">
+              Select {form.recipientType === "employee" ? "Employee" : "Client"}
+            </label>
+            <select
+              value={currentRecipientEmail}
+              onChange={(e) => {
+                if (form.recipientType === "employee") {
+                  setForm({ ...form, employeeEmail: e.target.value })
+                } else {
+                  setForm({ ...form, clientEmail: e.target.value })
+                }
+              }}
+              disabled={loadingRecipients}
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 focus:border-transparent disabled:opacity-50 cursor-pointer"
+            >
+              <option value="">
+                {loadingRecipients ? "Loading..." : `Select ${form.recipientType === "employee" ? "employee" : "client"}...`}
+              </option>
+              {recipients.map((recipient) => (
+                <option key={recipient.email} value={recipient.email}>
+                  {recipient.name} ({recipient.email})
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <input
-            type="text"
-            placeholder="Signature (type name)"
-            className="w-full border p-2 rounded"
-            value={form.signature}
-            onChange={(e) =>
-              setForm({ ...form, signature: e.target.value })
-            }
-          />
+          {/* Reference */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Reference</label>
+            <input
+              type="text"
+              placeholder="e.g., CONTRACT-2024-001"
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 focus:border-transparent"
+              value={form.reference}
+              onChange={(e) => setForm({ ...form, reference: e.target.value })}
+            />
+          </div>
 
-          <input
-            type="text"
-            placeholder="Reference"
-            className="w-full border p-2 rounded"
-            value={form.reference}
-            onChange={(e) =>
-              setForm({ ...form, reference: e.target.value })
-            }
-          />
-          <input
-  type="email"
-  placeholder="Client Email"
-  className="w-full border p-2 rounded"
-  value={form.clientEmail}
-  onChange={(e) =>
-    setForm({ ...form, clientEmail: e.target.value })
-  }
-/>
+          {/* Description */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Terms & Description</label>
+            <textarea
+              placeholder="Enter contract details and terms..."
+              rows={4}
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 focus:border-transparent resize-none"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
 
-          <Button type="submit" className="w-full">
-            {isEditing ? "Update Contract" : "Save Contract"}
-          </Button>
+          {/* Admin Signature */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Your Signature (Optional)</label>
+            <input
+              type="text"
+              placeholder="Type your name"
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 focus:border-transparent"
+              value={form.signature}
+              onChange={(e) => setForm({ ...form, signature: e.target.value })}
+            />
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-zinc-800">
+            <Button
+              type="button"
+              onClick={() => setOpen(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={submitting || loadingRecipients || !currentRecipientEmail}
+              className="flex-1"
+            >
+              {submitting ? "Saving..." : isEditing ? "Update" : "Issue"}
+            </Button>
+          </div>
 
         </form>
 

@@ -109,6 +109,11 @@ export function AppSidebar({
       icon: <Handshake />,
     },
     {
+      title: "Employee Contracts",
+      url: "/dashboard/admin/employee-contracts",
+      icon: <Handshake />,
+    },
+    {
       title: "Payment",
       url: "/dashboard/admin/payment",
       icon: <WalletCards />,
@@ -136,6 +141,15 @@ export function AppSidebar({
       title: "Quotations",
       url: "/dashboard/client/quotations",
       icon: <BookA />,
+    }
+  )
+  }
+
+  if (normalizedRole === "employee") {
+    navMain.push({
+      title: "Contracts",
+      url: "/dashboard/employee/contracts",
+      icon: <Handshake />,
     }
   )
   }
