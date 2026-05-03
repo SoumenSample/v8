@@ -10,17 +10,13 @@ import { Button } from "@/components/ui/button"
 import { Users, MapPin, TrendingUp, Target, ArrowUpIcon, UserIcon, Loader2 } from "lucide-react"
 
 const chartConfig = {
-  new: {
-    label: "New Customers",
+  clients: {
+    label: "Clients",
     color: "#3b82f6",
   },
-  returning: {
-    label: "Returning",
+  leads: {
+    label: "Leads",
     color: "#10b981",
-  },
-  churn: {
-    label: "Churned",
-    color: "#f59e0b",
   },
 }
 
@@ -107,7 +103,7 @@ export function CustomerInsights() {
               <div className="grid grid-cols-10 gap-6">
                 {/* Chart Area - 70% */}
                 <div className="col-span-10 xl:col-span-7">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-6">Customer Growth Trends</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-6">Clients vs Leads</h3>
                   <ChartContainer id="" config={chartConfig} className="h-[375px] w-full">
                     <BarChart data={customerGrowthData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -126,9 +122,8 @@ export function CustomerInsights() {
                         domain={[0, 'dataMax']}
                       />
                       <ChartTooltip content={<ChartTooltipContent className="" />} />
-                      <Bar dataKey="new" fill="var(--color-new)" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="returning" fill="var(--color-returning)" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="churn" fill="var(--color-churn)" radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="clients" fill="var(--color-clients, #3b82f6)" radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="leads" fill="var(--color-leads, #10b981)" radius={[2, 2, 0, 0]} />
                     </BarChart>
                   </ChartContainer>
                 </div>
@@ -142,22 +137,23 @@ export function CustomerInsights() {
                         <TrendingUp className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Total Clients</span>
                       </div>
-                      <div className="text-2xl font-bold">15,847</div>
+                      <div className="text-2xl font-bold">{metrics.totalClients?.toLocaleString?.() ?? metrics.totalClients}</div>
                       <div className="text-xs text-green-600 flex items-center gap-1 mt-1">
                         <ArrowUpIcon className="h-3 w-3" />
-                        +12.5% from last month
+                        {metrics.growthPercentage}
                       </div>
                     </div>
 
                     <div className="p-4 rounded-lg max-lg:col-span-3 xl:col-span-3 border border-border">
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Conversion Rate</span>
+                        <span className="text-sm font-medium">Lead → Client Conversion</span>
                       </div>
-                      <div className="text-2xl font-bold">92.4%</div>
+                      <div className="text-2xl font-bold">{metrics.conversionRate}</div>
                       <div className="text-xs text-green-600 flex items-center gap-1 mt-1">
                         <ArrowUpIcon className="h-3 w-3" />
-                        +2.1% improvement
+                        {/* show growthPercentage or static note if desired */}
+                        {""}
                       </div>
                     </div>
 

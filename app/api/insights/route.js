@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { connectToDatabase } from "@/lib/mongodb";
 import Client from "@/lib/models/Client";
+import Lead from "@/lib/models/Lead";
 import User from "@/lib/models/User";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export async function GET() {
       .select("createdAt age region validFrom validTo")
       .lean();
 
-    // Fetch growth trends by month
+    // Fetch clients growth trends by month
     const growthTrends = await Client.aggregate([
       {
         $group: {
@@ -53,17 +54,36 @@ export async function GET() {
       const year = date.getFullYear();
 
       const monthData = growthTrends.find((d) => d._id.month === month && d._id.year === year);
-      const newCustomers = monthData ? monthData.count : 0;
+      const clientsCount = monthData ? monthData.count : 0;
 
-      // Calculate returning and churn (simplified - you can enhance this with more logic)
-      const returningCount = Math.floor(newCustomers * 3.5);
-      const churnCount = Math.floor(newCustomers * 0.15);
+      // Aggregate leads for the same month/year
+      const leadMonthData = await Lead.aggregate([
+        {
+          $project: {
+            month: { $month: "$createdAt" },
+            year: { $year: "$createdAt" },
+          },
+        },
+        {
+          $match: {
+            month: month,
+            year: year,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      const leadsCount = leadMonthData && leadMonthData.length ? leadMonthData[0].count : 0;
 
       growthChartData.push({
         month: months[month - 1],
-        new: newCustomers,
-        returning: returningCount,
-        churn: churnCount,
+        clients: clientsCount,
+        leads: leadsCount,
       });
     }
 
@@ -124,16 +144,18 @@ export async function GET() {
 
     // Calculate total metrics
     const totalClients = clients.length;
-    const newClientsThisMonth = growthChartData[growthChartData.length - 1]?.new || 0;
-    const previousMonthClients = growthChartData[growthChartData.length - 2]?.new || 0;
+    const totalLeads = await Lead.countDocuments({});
+    const newClientsThisMonth = growthChartData[growthChartData.length - 1]?.clients || 0;
+    const previousMonthClients = growthChartData[growthChartData.length - 2]?.clients || 0;
     const growthPercentage = previousMonthClients > 0 ? (((newClientsThisMonth - previousMonthClients) / previousMonthClients) * 100).toFixed(1) : 0;
-    const conversionRate = (92 + Math.random() * 5).toFixed(1); // Simplified calculation
+    const conversionRate = totalLeads > 0 ? ((totalClients / totalLeads) * 100).toFixed(1) : 0;
 
     return Response.json(
       {
         growth: {
           data: growthChartData,
           totalClients,
+          totalLeads,
           growthPercentage: `+${growthPercentage}%`,
           conversionRate: `${conversionRate}%`,
         },
